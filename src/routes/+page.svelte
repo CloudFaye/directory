@@ -235,8 +235,8 @@
       on:mouseenter={() => handleMouseEnter(i)}
       on:mouseleave={handleMouseLeave}
     >
-        <p class="font-medium">{bios[i].name}</p>
-        <p class="text-gray-600">{bios[i].profession}</p>
+        <p class="font-medium text-[14px]">{bios[i].name}</p>
+        <p class="text-gray-600 text-[14px]">{bios[i].profession}</p>
     </div>
     {/each}
     <div class="absolute  flex-col gap-[-15px] cards-wrapper bottom-80 right-70 md:block hidden" class:leaving={isLeaving}>
