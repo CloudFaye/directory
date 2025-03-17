@@ -239,7 +239,7 @@
         <p class="text-gray-600">{bios[i].profession}</p>
     </div>
     {/each}
-    <div class="absolute  flex-col gap-[-15px] cards-wrapper bottom-80 right-80 md:block hidden" class:leaving={isLeaving}>
+    <div class="absolute  flex-col gap-[-15px] cards-wrapper bottom-80 right-70 md:block hidden" class:leaving={isLeaving}>
          <div class="bio-container card w-[340px] py-4 h-fit  " class:active={hoveredIndex !== -1} class:leaving={isLeaving}>
       <div class="content" class:visible={hoveredIndex !== -1}>
         {#if hoveredIndex !== -1}
@@ -248,7 +248,7 @@
         {/if}
       </div>
     </div>
-  <div class="image-container card w-[340px] h-[240px] bg-red-500 " class:active={hoveredIndex !== -1} class:leaving={isLeaving}>
+  <div class="image-container card w-[340px] h-[140px] bg-red-500 " class:active={hoveredIndex !== -1} class:leaving={isLeaving}>
       {#if hoveredIndex !== -1}
         <svg width="100%" height="100%" viewBox="0 0 300 350">
           {@html shapes[hoveredIndex]}
