@@ -224,7 +224,7 @@
 
 
 <main class='flex items-center justify-start h-screen'>
-   <div class='middle-container overflow-y-scroll flex gap-1 flex-col px-6 max-w-full w-full md:w-[45%] border-gray-200 h-full'>
+   <div class='middle-container overflow-y-scroll flex gap-1 flex-col p-6  px-6 max-w-full w-full md:w-[45%] border-gray-200 h-full'>
     <h1 class="text-LG font-bold">{bios.length} Creatives thriving in +234</h1>
     {#each Array(600).fill(0) as _, i}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
