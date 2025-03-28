@@ -1,38 +1,61 @@
-# sv
+# 234Creatives
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A directory of Nigerian creative professionals built with SvelteKit and Notion.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- 🚀 Built with SvelteKit and Svelte 5 runes
+- 📊 Notion database integration for content management
+- 🔍 Search and filter by category
+- 📱 Responsive design
+- 🔄 Load more pagination
 
-```bash
-# create a new project in the current directory
-npx sv create
+## Setup
 
-# create a new project in my-app
-npx sv create my-app
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/234creatives.git
+   cd 234creatives
+   ```
 
-## Developing
+2. Install dependencies:
+   ```bash
+   bun install
+   ```
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+3. Set up environment variables:
+   - Copy `.env.example` to `.env`:
+     ```bash
+     cp .env.example .env
+     ```
+   - Edit `.env` with your Notion API key and database ID
 
-```bash
-npm run dev
+4. Set up your Notion database:
+   - Create a new Notion database with the following properties:
+     - Name (title)
+     - Bio (rich text)
+     - Portfolio (url)
+     - Category (select)
+   - Create a Notion integration at https://www.notion.so/my-integrations
+   - Share your database with the integration
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+5. Start the development server:
+   ```bash
+   bun run dev
+   ```
 
-## Building
+## Deployment
 
-To create a production version of your app:
+This project is set up to deploy to Netlify. Just connect your repository and make sure to set the environment variables in the Netlify dashboard.
 
-```bash
-npm run build
-```
+## Technology Stack
 
-You can preview the production build with `npm run preview`.
+- SvelteKit
+- Svelte 5 with runes for state management
+- TypeScript
+- Tailwind CSS
+- Notion API
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## License
+
+MIT
