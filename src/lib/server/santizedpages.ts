@@ -1,34 +1,24 @@
-import type { PageServerLoad } from '../../routes/$types';
-import { getNotionPages } from '$lib/server/query';
+import { getNotionPages } from './query';
+import type { APIData } from './types';
 
-interface CreativePage {
-	name: string;
-	category: string;
-	//services: string[];
-	portfolio: string;
-}
+export let sanitizedPages: APIData[] = [];
 
-export let sanitizedPages: CreativePage[] = [];
-
-// Create an initialization promise that we can await
-export const initPromise = (async () => {
+async function initialize() {
 	try {
-		const data = await getNotionPages();
+		console.log('Starting initialization...');
+		const response = await getNotionPages();
 
-		if (!data || !data.pages) {
-			console.error('No pages found in Notion data');
-			return;
+		if (!response.pages || !Array.isArray(response.pages)) {
+			throw new Error('Invalid pages data');
 		}
 
-		sanitizedPages = data.pages.map((page) => ({
-			name: page?.name,
-			category: page?.category,
-			services: page?.services || [],
-			portfolio: page?.portfolio
-		}));
-
-		console.log('Pages loaded:', sanitizedPages.length);
-	} catch (e) {
-		console.error('Error loading pages:', e);
+		sanitizedPages = response.pages;
+		console.log('Successfully loaded pages:', sanitizedPages.length);
+		return sanitizedPages;
+	} catch (error) {
+		console.error('Initialization failed:', error);
+		throw error;
 	}
-})();
+}
+
+export const initPromise = initialize();

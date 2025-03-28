@@ -43,3 +43,10 @@ export interface APIData {
 	portfolio: string;
 	services: string[];
 }
+
+export interface PublicPageData {
+	name: string;
+	totalPages: number;
+	categories: string[];
+	services: string[];
+}

@@ -1,13 +1,14 @@
 import type { APIData } from '$lib/server/types';
-const API_URL = 'https://two34-designers-backend.onrender.com';
+import { json } from '@sveltejs/kit';
+
+const API_URL = import.meta.env.DEV
+	? 'http://localhost:3000'
+	: 'https://two34-designers-backend.onrender.com';
 
 interface APIResponse {
 	pages: APIData[];
 }
 
-/**
- * Fetch designer list from render backend API
- */
 export async function fetchDesigners(): Promise<APIResponse> {
 	try {
 		const response = await fetch(`${API_URL}/api/creatives`, {
@@ -17,18 +18,41 @@ export async function fetchDesigners(): Promise<APIResponse> {
 		});
 
 		if (!response.ok) {
-			const error = await response.text();
-			throw new Error(`API error: ${response.status}: ${error}`);
+			throw new Error(`API error: ${response.status}`);
 		}
 
 		const data = await response.json();
+		console.log('API Response:', data);
 
 		if (!data || !Array.isArray(data.pages)) {
-			throw new Error('Invalid API response');
+			throw new Error('Invalid API response format');
 		}
+
 		return data;
 	} catch (error) {
-		console.error('Error fetching from backend API:', error);
+		console.error('Error fetching designers:', error);
 		throw error;
 	}
+}
+
+export async function GET() {
+	const data = await fetchDesigners();
+
+	// Remove any sensitive information before sending
+	const sanitizedData = data.pages.map((page) => ({
+		name: page.name,
+		category: page.category,
+		services: page.services,
+		portfolio: page.portfolio.startsWith('https://') ? page.portfolio : null
+	}));
+
+	return json(
+		{ pages: sanitizedData },
+		{
+			headers: {
+				'Cache-Control': 'max-age=0, s-maxage=3600',
+				'X-Frame-Options': 'DENY'
+			}
+		}
+	);
 }

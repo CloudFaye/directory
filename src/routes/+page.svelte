@@ -1,9 +1,15 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
+
 	const { data } = $props<{ data: PageData }>();
-	const creatives = $derived(data.pages);
-	let hoveredIndex = -1;
+
+	let designers = $state([]);
+	let hoveredIndex = $state(-1);
+
 	import Creative from '$lib/components/Creative.svelte';
+
+	const creatives = $derived(data.pages);
 </script>
 
 <div class="w-full fixed z-10 h-10 bg-neutral-200 p-2">filters component</div>
@@ -44,6 +50,7 @@
 		margin-bottom: 1rem;
 		cursor: pointer;
 		transition: linear 100ms;
+		break-inside: avoid;
 	}
 
 	.has-hovered-item .masonry-item {
