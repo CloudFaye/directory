@@ -1,22 +1,20 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
+	import type { PublicPageData, APIData } from '$lib/server/types';
+	import Creative from '$lib/components/Creative.svelte';
+	
 
 	const { data } = $props<{ data: PageData }>();
-
-	let designers = $state([]);
 	let hoveredIndex = $state(-1);
+	let designers = $derived(data.publicData);
 
-	import Creative from '$lib/components/Creative.svelte';
-
-	const creatives = $derived(data.pages);
 </script>
 
-<div class="w-full fixed z-10 h-10 bg-neutral-200 p-2">filters component</div>
+
 <div class="w-full mt-10 min-h-screen grid grid-cols-3 relative">
 	<div class="col-span-2 h-screen overflow-y-auto overflow-x-hidden">
 		<div class="masonry-container p-4 creative" class:has-hovered-item={hoveredIndex !== -1}>
-			{#each creatives as creative, i}
+			{#each designers as designer, i}
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					class="masonry-item transform transition-all duration-300"
@@ -24,15 +22,17 @@
 					onmouseleave={() => (hoveredIndex = -1)}
 					class:is-hovered={hoveredIndex === i}
 				>
-					<Creative {...creative} />
+					<Creative name={designer.name} category={designer.category} services={designer.services} />
 				</div>
 			{/each}
 		</div>
 	</div>
-
-	<div class="image-container fixed right-16 top-20 w-1/3 h-[350px]">
-		<div class="bg-gray-200 w-full h-full">
-			<img class="w-full h-full rounded-lg object-cover" src="" alt="" />
+	
+	<div class="col-span-1">
+		<div class="sticky top-0 p-4">
+			<h2 class="text-xl font-bold mb-4">Filters</h2>
+			<p>Total Creatives: {designers.length}</p>
+			<!-- Add filter components here if needed -->
 		</div>
 	</div>
 </div>

@@ -1,9 +1,10 @@
-import type { PageServerLoad } from './$types';
-import { fetchDesigners } from '$lib/api/api';
+import { publicLoad } from '$lib';
 
 export async function load() {
-	const data = await fetchDesigners();
+	const data = await publicLoad()
 	return {
-		pages: data.pages
+		publicData: data.publicData
 	};
 }
+
+
