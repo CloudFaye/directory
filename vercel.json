@@ -1,6 +1,8 @@
 {
   "version": 2,
   "framework": "sveltekit",
+  "buildCommand": "bun run build",
+  "outputDirectory": ".vercel/output",
   "routes": [
     {
       "src": "/api/(.*)",
