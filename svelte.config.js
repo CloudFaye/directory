@@ -5,7 +5,8 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
   kit: {
     adapter: adapter({
-      fallback: 'index.html' 
+      edge: false,
+      split: false
     }),
     prerender: {
       entries: [] 
