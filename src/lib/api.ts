@@ -2,22 +2,28 @@ import { writable } from 'svelte/store';
 
 // API URL from environment or fallback
 const API_URL = import.meta.env.VITE_API_URL || 'https://two34-designers-backend.onrender.com';
+// Vercel deployment URL
+const VERCEL_URL = 'https://directory-liart-five.vercel.app';
 
-// For client-side, use relative URL which will go through Vercel's routing
-const isClient = typeof window !== 'undefined';
-const getApiUrl = () => isClient ? '' : API_URL;
-
-// API functions
+/**
+ * Fetch designers from the backend 
+ */
 export async function fetchDesigners() {
   try {
-    console.log('Fetching designers from:', `${API_URL}/api/creatives`);
+    // Use direct API call
+    const targetUrl = `${API_URL}/api/creatives`;
     
-    const response = await fetch(`${API_URL}/api/creatives`, {
+    console.log('Fetching designers from:', targetUrl);
+    
+    const response = await fetch(targetUrl, {
       method: 'GET',
-      mode: 'cors',
+      mode: 'cors', // Keep CORS mode
+      credentials: 'omit', // Don't send credentials
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Origin': VERCEL_URL,
+        'Referer': VERCEL_URL
       },
       // Timeout handling with AbortController
       signal: AbortSignal.timeout(15000) // 15 second timeout
