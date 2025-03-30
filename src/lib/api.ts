@@ -3,6 +3,10 @@ import { writable } from 'svelte/store';
 // API URL from environment or fallback - will be used for non-proxied calls
 const API_URL = import.meta.env.VITE_API_URL || 'https://two34-designers-backend.onrender.com';
 
+// For client-side, use relative URL which will go through Vercel's routing
+const isClient = typeof window !== 'undefined';
+const getApiUrl = () => isClient ? '' : API_URL;
+
 // Network status store
 export const networkStatus = writable({
   online: navigator.onLine,
@@ -45,8 +49,9 @@ const getFromCache = (key: string) => {
 // API functions
 export async function fetchDesigners() {
   try {
-    // Use direct API URL for production deployment
-    const response = await fetch(`${API_URL}/api/creatives`);
+    // Use relative URL for client which will go through Vercel's proxy route
+    const apiUrl = getApiUrl();
+    const response = await fetch(`${apiUrl}/api/creatives`);
     
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);

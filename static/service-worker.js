@@ -55,7 +55,7 @@ self.addEventListener('fetch', (event) => {
   }
   
   // Network-first strategy for API requests - with better error handling
-  if (url.pathname.startsWith('/api/')) {
+  if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
@@ -69,6 +69,8 @@ self.addEventListener('fetch', (event) => {
           
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, clonedResponse);
+          }).catch(err => {
+            console.warn('Cache put error:', err);
           });
           
           return response;
