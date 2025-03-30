@@ -45,8 +45,8 @@ const getFromCache = (key: string) => {
 // API functions
 export async function fetchDesigners() {
   try {
-    // Use relative URL to leverage the Vite proxy for dev and deployment
-    const response = await fetch('/api/creatives');
+    // Use direct API URL for production deployment
+    const response = await fetch(`${API_URL}/api/creatives`);
     
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
