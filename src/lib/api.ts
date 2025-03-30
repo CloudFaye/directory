@@ -10,9 +10,14 @@ const getApiUrl = () => isClient ? '' : API_URL;
 // API functions
 export async function fetchDesigners() {
   try {
-    // Use relative URL for client which will go through Vercel's proxy route
-    const apiUrl = getApiUrl();
-    const response = await fetch(`${apiUrl}/api/creatives`);
+    // Always use the full API URL to avoid routing issues in production
+    const response = await fetch(`${API_URL}/api/creatives`, {
+      // Add CORS mode to ensure browser handles the request correctly
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
     
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
