@@ -1,2 +1,2 @@
-/api/* https://two34-designers-backend.onrender.com/api/:splat 200
-/* /index.html 200
+/api/*  https://two34-designers-backend.onrender.com/api/:splat  200!  {Access-Control-Allow-Origin: "*", Access-Control-Allow-Methods: "GET, POST, PUT, DELETE, OPTIONS", Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept"}
+/*      /index.html     200
