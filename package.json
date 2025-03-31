@@ -43,6 +43,7 @@
 	},
 	"dependencies": {
 		"@notionhq/client": "^2.3.0",
+		"@vercel/speed-insights": "^1.2.0",
 		"dotenv": "^16.4.7"
 	}
 }
