@@ -5,6 +5,10 @@ declare global {
 		// interface PageData {}
 		// interface Platform {}
 	}
+
+	interface ImportMetaEnv {
+		VERCEL_BLOB_READ_WRITE_TOKEN: string;
+	}
 }
 
 export {};

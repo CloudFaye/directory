@@ -1,5 +1,19 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://two34-designers-backend.onrender.com';
+const API_URL = import.meta.env.DEV 
+  ? '' // Empty string to use local proxy
+  : (import.meta.env.VITE_API_URL || 'https://two34-designers-backend.onrender.com');
 const VERCEL_URL = 'https://directory-liart-five.vercel.app';
+const DEV_URL = import.meta.env.DEV ? 'http://localhost:5173' : VERCEL_URL;
+
+/**
+ * Designer data interface
+ */
+interface Designer {
+  name: string;
+  category: string;
+  services?: string[];
+  website?: string;
+  [key: string]: any;
+}
 
 /**
  * Fetch designers from the backend 
@@ -15,8 +29,8 @@ export async function fetchDesigners() {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Origin': VERCEL_URL,
-        'Referer': VERCEL_URL
+        'Origin': DEV_URL,
+        'Referer': DEV_URL
       },
       signal: AbortSignal.timeout(15000) 
     });
@@ -34,8 +48,14 @@ export async function fetchDesigners() {
       };
     }
     
+    // Transform data to include portfolioUrl if website field exists
+    const designersWithPortfolio = data.pages.map((designer: Designer) => ({
+      ...designer,
+      portfolioUrl: designer.website || null
+    }));
+    
     return { 
-      data: data.pages, 
+      data: designersWithPortfolio, 
       error: null
     };
   } catch (error) {
