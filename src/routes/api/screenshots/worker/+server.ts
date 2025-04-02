@@ -11,54 +11,51 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const { url, filename } = await request.json();
     
-    if (!url || !filename) {
-      return json({ success: false, error: 'URL and filename are required' }, { status: 400 });
+    if (!url) {
+      return json({ success: false, error: 'URL is required' }, { status: 400 });
     }
     
-    // Launch headless browser
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    // Launch puppeteer
+    const browser = await puppeteer.launch({ headless: true });
+    
+    // Create a new page
+    const page = await browser.newPage();
+    
+    // Set the viewport
+    await page.setViewport({
+      width: 1200,
+      height: 800,
+      deviceScaleFactor: 1
     });
     
-    try {
-      const page = await browser.newPage();
-      
-      // Set viewport size (Macbook-like dimensions)
-      await page.setViewport({
-        width: 1300,
-        height: 800,
-        deviceScaleFactor: 2
-      });
-      
-      // Navigate to the URL with timeout
-      await page.goto(url, { 
-        waitUntil: 'networkidle2',
-        timeout: 30000 
-      });
-      
-      // Take screenshot
-      const screenshot = await page.screenshot({ 
-        type: 'png',
-        fullPage: false
-      });
-      
-      // Upload to Vercel Blob
-      const blob = await put(filename, new Blob([screenshot]), {
-        access: 'public'
-      });
-      
-      return json({
-        success: true,
-        screenshotUrl: blob.url
-      });
-    } finally {
-      await browser.close();
-    }
+    // Navigate to the URL
+    await page.goto(url, {
+      waitUntil: 'networkidle0',
+      timeout: 30000
+    });
+    
+    // Take a screenshot
+    const screenshot = await page.screenshot({
+      type: 'png',
+      fullPage: true
+    });
+    
+    // Upload to Vercel Blob
+    const blob = await put(`screenshots/${filename}`, new Blob([screenshot]), {
+      contentType: 'image/png',
+      access: 'public'
+    });
+    
+    // Close the browser
+    await browser.close();
+    
+    return json({
+      success: true,
+      screenshotUrl: blob.url
+    });
   } catch (error) {
-    console.error('Error generating screenshot:', error);
-    return json({ 
-      success: false, 
+    return json({
+      success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

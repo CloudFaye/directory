@@ -8,6 +8,8 @@ interface ScreenshotQueueItem {
   token?: string;
   screenshotUrl?: string;
   retries: number;
+  filename: string;
+  callback?: (screenshotUrl: string) => void;
 }
 
 interface ScreenshotResponse {
@@ -30,6 +32,19 @@ const MAX_PARALLEL_REQUESTS = 3;
 // Maximum retries
 const MAX_RETRIES = 2;
 
+// Flag to track if processing is in progress
+let isProcessing = false;
+
+/**
+ * Encode a string to base64
+ */
+function safeEncode(str: string): string {
+  // Use Buffer in Node.js environment, btoa in browser
+  return typeof window !== 'undefined' 
+    ? window.btoa(str) 
+    : Buffer.from(str).toString('base64');
+}
+
 /**
  * Request a screenshot for a URL
  * @param url The URL to take a screenshot of
@@ -47,17 +62,17 @@ export async function getScreenshot(url: string): Promise<string | null> {
       screenshotQueue.push({
         url,
         status: 'pending',
-        retries: 0
+        retries: 0,
+        filename: ''
       });
       
       // Start processing queue if not already processing
-      processQueue();
+      processNextScreenshot();
     }
     
     // Return null initially, UI will show placeholder
     return null;
   } catch (error) {
-    console.error('Error requesting screenshot:', error);
     return null;
   }
 }
@@ -65,74 +80,75 @@ export async function getScreenshot(url: string): Promise<string | null> {
 /**
  * Process the screenshot queue
  */
-async function processQueue() {
-  // Count active requests
-  const activeRequests = screenshotQueue.filter(
-    item => item.status === 'processing'
-  ).length;
-  
-  // If already at max parallel requests, do nothing
-  if (activeRequests >= MAX_PARALLEL_REQUESTS) {
+async function processNextScreenshot() {
+  if (screenshotQueue.length === 0 || isProcessing) {
     return;
   }
   
-  // Get next pending item
-  const nextItem = screenshotQueue.find(item => item.status === 'pending');
+  isProcessing = true;
+  const nextItem = screenshotQueue.shift();
   
   if (!nextItem) {
-    return; // No pending items
+    isProcessing = false;
+    return;
   }
   
-  // Mark as processing
-  nextItem.status = 'processing';
-  
   try {
-    // Request screenshot
-    const response = await fetch('/api/screenshots', {
+    // Encode URL for filename
+    const encodedUrl = safeEncode(nextItem.url).replace(/\//g, '_').replace(/\+/g, '-');
+    const filename = `${encodedUrl}.png`;
+    
+    // Request screenshot directly from worker
+    const response = await fetch('/api/screenshots/worker', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ url: nextItem.url })
+      body: JSON.stringify({
+        url: nextItem.url,
+        filename: filename
+      })
     });
     
     if (!response.ok) {
+      const errorText = await response.text();
       throw new Error(`HTTP error: ${response.status}`);
     }
     
-    const data: ScreenshotResponse = await response.json();
+    const data = await response.json();
     
     if (!data.success) {
       throw new Error(data.error || 'Unknown error');
     }
     
-    // If screenshot already exists
+    // Screenshot should be available immediately from worker
     if (data.screenshotUrl) {
       nextItem.status = 'completed';
       nextItem.screenshotUrl = data.screenshotUrl;
       screenshotCache.set(nextItem.url, data.screenshotUrl);
-    } 
-    // If screenshot generation queued
-    else if (data.token) {
-      nextItem.token = data.token;
-      // In a real implementation, you would poll for completion
-      // For now, we'll just mark as completed after a delay
-      await simulatePollForCompletion(nextItem);
+      if (nextItem.callback) {
+        nextItem.callback(data.screenshotUrl);
+      }
+    } else {
+      throw new Error('No screenshot URL received from worker');
     }
   } catch (error) {
-    console.error(`Error processing screenshot for ${nextItem.url}:`, error);
     nextItem.status = 'failed';
     
     // Retry if under max retries
     if (nextItem.retries < MAX_RETRIES) {
       nextItem.retries++;
       nextItem.status = 'pending';
-      setTimeout(processQueue, 1000 * nextItem.retries); // Exponential backoff
+      setTimeout(processNextScreenshot, 1000 * nextItem.retries); // Exponential backoff
+    }
+  } finally {
+    isProcessing = false;
+    
+    // Process next item
+    if (screenshotQueue.length > 0) {
+      setTimeout(processNextScreenshot, 500);
     }
   }
-  
-  // Continue processing queue
-  processQueue();
 }
 
 /**

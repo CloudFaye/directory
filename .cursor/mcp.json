@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "svelte-docs": {
+      "command": "npx",
+      "args": ["-y", "mcp-svelte-docs"],
+      "env": {
+        "LIBSQL_URL": "file:/Users/mac/Desktop/mcp-svelte-docs/local.db"
+      }
+    }
+  }
+}
