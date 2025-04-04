@@ -12,6 +12,7 @@
     activeService,
     searchTerm
   } from '$lib/stores/designers';
+  import { onMount } from 'svelte';
 
   // Track if any filters are active
   $: isFiltered = 
@@ -42,16 +43,70 @@
   // Check if empty state should be shown (only if data is loaded and results are empty)
   $: showEmptyState = !$loading && $dataLoaded && $filteredDesigners.length === 0;
 
+  // Flag to track if we should load screenshots (after initial render)
+  let shouldLoadScreenshots = false;
+  
+  // Use Intersection Observer for lazy loading
+  let loadedImages = new Set();
+  
   // Get screenshot for a designer's portfolio
-  function getScreenshotUrl(url: string): string {
-    if (!url) return '';
+  function getScreenshotUrl(url: string, index: number): string {
+    if (!url || !shouldLoadScreenshots || !loadedImages.has(index)) return '';
     return `https://image.thum.io/get/width/1200/crop/800/noanimate/${encodeURIComponent(url)}`;
   }
+  
+  // Initialize intersection observer after component mounts
+  onMount(() => {
+    // Wait for initial render and data to load before loading screenshots
+    setTimeout(() => {
+      shouldLoadScreenshots = true;
+    }, 800);
+    
+    // Use intersection observer to load only visible thumbnails
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const index = parseInt(entry.target.getAttribute('data-index') || '-1');
+          if (index >= 0) {
+            loadedImages.add(index);
+            // Force update
+            loadedImages = loadedImages;
+            // Stop observing this element
+            observer.unobserve(entry.target);
+          }
+        }
+      });
+    }, { rootMargin: '200px' });
+    
+    // Observe all placeholders
+    const observePlaceholders = () => {
+      document.querySelectorAll('.screenshot-placeholder').forEach((el, i) => {
+        observer.observe(el);
+      });
+    };
+    
+    // Initial observation
+    observePlaceholders();
+    
+    // Re-observe when designers change
+    const unsubscribe = filteredDesigners.subscribe(() => {
+      // Wait for DOM to update with new designers
+      setTimeout(observePlaceholders, 100);
+    });
+    
+    return () => {
+      observer.disconnect();
+      unsubscribe();
+    };
+  });
 </script>
 
-<div class="w-full">
+<div class="">
   <!-- Only Sort Controls -->
-  <div class="flex justify-end items-center mb-6 pb-2 border-b">
+  <div class="flex justify-between items-center mb-6 pb-2 border-b">
+    <h2 class="text-lg uppercase tracking-wide font-medium text-gray-800">
+      {$activeCategory ? $activeCategory : $activeService ? $activeService : 'All Designers'}
+    </h2>
     <div class="flex items-center">
       <button 
         class="px-3 py-1 flex items-center text-sm"
@@ -110,58 +165,121 @@
 
   <!-- Designers List -->
   {:else if $filteredDesigners.length > 0}
-    <ul class="space-y-4">
+    <div class="designers-grid">
       {#each $filteredDesigners as designer, index (designer.id || `${designer.name}-${index}`)}
-        <li class="border-b pb-4 hover:bg-gray-50 transition-colors duration-150">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center justify-between gap-2 flex-row">
-             
-                <h3 class="text-lg font-semibold">{designer.name}</h3>
-            
-               <span class="text-sm text-gray-500">{designer.category}</span>
-              
-              {#if designer.services && designer.services.length}
-                <div class=" flex flex-wrap gap-1">
-                  {#each designer.services as service}
-                    <span class="text-xs px-1 py-0.5  rounded">[{service}]</span>
-                  {/each}
-                </div>
-              {/if}
-
-              {#if designer.portfolioUrl}
-                <div class="mt-2">
-                  <a 
-                    href={designer.portfolioUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    class="text-indigo-600 hover:text-indigo-800 text-sm inline-flex items-center"
-                  >
-                    Visit website
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                  </a>
-                </div>
-              {/if}
+        <div class="designer relative py-1 border-b border-gray-200 min-w-0">
+          {#if designer.portfolioUrl}
+            <a href={designer.portfolioUrl} aria-label={`${designer.name} portfolio`} target="_blank" rel="noopener nofollow" class="absolute inset-0 z-10"></a>
+          {/if}
+          
+          <div class="name-row">
+            <div class="name-container relative inline-block overflow-hidden">
+              <span class="hover-bg absolute inset-0 bg-yellow-300 origin-left transform scale-x-0 transition-transform duration-200 ease-in-out"></span>
+              <h3 class="text-sm font-semibold mr-1.5 relative z-[1]">{designer.name}</h3>
             </div>
-
-            {#if designer.portfolioUrl}
-              <div class="ml-4 w-32 h-20 bg-gray-100 hidden sm:block flex-shrink-0">
-                <img 
-                  src={getScreenshotUrl(designer.portfolioUrl)} 
-                  alt={`${designer.name} website preview`}
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            {/if}
+            <span class="type text-xs px-1 ml-1 text-gray-600 font-mono">
+              {designer.type || 'NG'}
+            </span>
           </div>
-        </li>
+          
+          <div class="details text-xs text-gray-600 mt-0.5 leading-tight">
+            <span class="category">{designer.category}</span>
+            {#if designer.services && designer.services.length}
+              <span class="services ml-1">[{designer.services.join(', ')}]</span>
+            {/if}
+            
+          </div>
+        </div>
       {/each}
-    </ul>
+    </div>
   {/if}
 </div>
 
 <style>
-  /* Add any component specific styles here */
-</style> 
+  .designers-grid {
+    columns: 1;
+    column-gap: 3rem;
+    column-fill: balance;
+    width: 100%;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+  
+  @media (min-width: 640px) {
+    .designers-grid {
+      columns: 2;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .designers-grid {
+      columns: 3;
+    }
+  }
+  
+  .designer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 0.25rem;
+    padding-top: 0.25rem;
+    width: 100%;
+    min-width: 0;
+  }
+  
+  .name-row {
+    display: flex;
+    align-items: baseline;
+  }
+  
+  .name-container {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+  }
+  
+  .hover-bg {
+    position: absolute;
+    inset: 0;
+    background-color: #FDE047;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s ease-out;
+  }
+  
+  .designer:hover .hover-bg {
+    transform: scaleX(1);
+  }
+  
+  .designer:not(:hover) .hover-bg {
+    transform-origin: right;
+  }
+  
+  h3 {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+  }
+  
+  .type {
+    font-family: monospace;
+    opacity: 0.7;
+    vertical-align: baseline;
+  }
+  
+  .details {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .services {
+    font-style: normal;
+  }
+  
+  .prv {
+    opacity: 0.5;
+  }
+</style>
+

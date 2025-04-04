@@ -12,6 +12,7 @@
     setCategory,
     setService
   } from '$lib/stores/designers';
+	import { slide } from 'svelte/transition';
 
   // Synchronize URL state with store state when component mounts or URL changes
   $effect(() => {
@@ -64,7 +65,7 @@
   }
 </script>
 
-<sidebar id="menu" class="lg:w-[280px] fixed left-0 top-0 h-full bg-slate-200 border-r border-gray-200 p-4 flex flex-col gap-4 justify-between overflow-y-auto">
+<div class="fixed left-0 top-0 w-[280px] h-full bg-slate-200 border-r border-gray-300 p-4 flex flex-col gap-4 justify-between overflow-y-auto">
   <div id="togglehamburger" class="md:hidden cursor-pointer">
     <!-- Hamburger icon for mobile -->
     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -75,73 +76,70 @@
   <nav id="commands">
     <div id="logo" class="mb-6">
       <a href="/" class="text-lg font-bold no-underline">
-        234designers<br>.list
+        234designers.list
       </a>
     </div>
 
     <details class="mb-4" id="categories" bind:this={categoryDetails} open={isCategoryOpen}>
       <summary class="cursor-pointer font-medium py-2">By category</summary>
       {#if $loading && !$dataLoaded && $categories.length === 0}
-        <div class="pl-4 mt-2 text-sm text-gray-500">Loading categories...</div>
+        <div class="pl-4 mt-2 text-sm text-gray-500" transition:slide>Loading categories...</div>
       {:else}
-        <ul class="pl-4 mt-2 space-y-2 bg-white rounded p-2">
-          {#each $categories as category}
-            <li>
-              <a 
-                href="/category/{category}" 
-                aria-label="{category}" 
-                class:font-bold={isActiveCategory(category)}
-                class:opacity-50={$activeCategory && !isActiveCategory(category)}
-              >
-                {category}
-              </a>
-            </li>
-          {/each}
-        </ul>
+        <div class='bg-white rounded p-2' transition:slide>
+          <ul class="pl-4 flex flex-col rounded p-2">
+            {#each $categories as category}
+              <li class='px-2'>
+                <a 
+                  href="/category/{category}" 
+                  aria-label="{category}" 
+                  class:font-bold={isActiveCategory(category)}
+                  class:opacity-50={$activeCategory && !isActiveCategory(category)}
+                >
+                  {category}
+                </a>
+              </li>
+            {/each}
+          </ul>
+        </div>
       {/if}
     </details>
 
     <details class="mb-4" bind:this={serviceDetails} open={isServiceOpen}>
-      <summary class="cursor-pointer font-medium py-2">By service</summary>
+      <summary class="cursor-pointer font-medium py-2 ">By service</summary>
       {#if $loading && !$dataLoaded && $services.length === 0}
-        <div class="pl-4 mt-2 text-sm text-gray-500">Loading services...</div>
+        <div class="pl-4 mt-2 text-sm text-gray-500" transition:slide>Loading services...</div>
       {:else}
-        <ul class="pl-4 mt-2 space-y-2 bg-white rounded p-2">
-          {#each $services as service}
-            <li>
-              <a 
-                href="/service/{service}" 
-                aria-label="{service}" 
-                class:font-bold={isActiveService(service)}
-                class:opacity-50={$activeService && !isActiveService(service)}
-              >
-                {service}
-              </a>
-            </li>
-          {/each}
-        </ul>
+        <div class='bg-white rounded p-2' transition:slide>
+          <ul class="pl-4 flex flex-col rounded p-2">
+            {#each $services as service}
+              <li class='px-2  '>
+                <a 
+                  href="/service/{service}" 
+                  aria-label="{service}" 
+                  class:font-bold={isActiveService(service)}
+                  class:opacity-50={$activeService && !isActiveService(service)}
+                >
+                  {service}
+                </a>
+              </li>
+            {/each}
+          </ul>
+        </div>
       {/if}
     </details>
 
     <div class="flex flex-col">
       <a href="/apply" id="apply" class="py-2 font-medium">Apply</a>
-      <a href="/promote" id="promote" class="py-2 font-medium">Publish your projects</a>
+      
       <a href="/search" id="search" class="py-2 font-medium">Search</a>
     </div>
   </nav>
 
-  <div class="mt-6 border-t pt-4">
-    <h1 class="text-lg font-medium">List of design professionals from Nigeria</h1>
-    <p class="mt-2 text-sm text-gray-600">
-      234designers.list collects 474 freelancers, studios, and junior designers  
-      registered based on the professional categories and the services offered. order by name.
-    </p>
-    <p class="mt-4 text-sm">
-      <a href="mailto:contact@torinodesign.info">contact@torinodesign.info</a> — 
-      <a href="https://www.instagram.com/torinodesign.info/" target="_blank" rel="noopener">Instagram</a>
-    </p>
+  <div class="mt-6 border-t bg-white dark:bg-slate-700 pt-4">
+
+    
   </div>
-</sidebar>
+</div>
 
 <style>
   /* Add styles to match the design */

@@ -16,6 +16,9 @@ export const searchTerm = writable<string>('');
 // Flag to track if data has been loaded
 export const dataLoaded = writable(false);
 
+// Flag to track if initial loading state has been shown
+export const initialLoadingShown = writable(false);
+
 // Load all designers data (only once)
 export async function loadAllDesigners() {
   // Don't reload if we already have data and loading is in progress
@@ -29,8 +32,14 @@ export async function loadAllDesigners() {
     return;
   }
   
+  // Set loading state
   loading.set(true);
   error.set(null);
+  
+  // Show loading state for minimum time on first load
+  if (!get(initialLoadingShown)) {
+    initialLoadingShown.set(true);
+  }
   
   try {
     const result = await fetchDesigners();
@@ -41,14 +50,19 @@ export async function loadAllDesigners() {
       return;
     }
     
+    // Set the data
     designers.set(result.data);
-    categories.set(extractCategories(result.data));
-    services.set(extractServices(result.data));
     
-    // Set filtered designers based on current filters
-    applyFiltersLocally();
-    
-    dataLoaded.set(true);
+    // Extract categories and services in background after rendering the list
+    setTimeout(() => {
+      categories.set(extractCategories(result.data));
+      services.set(extractServices(result.data));
+      
+      // Set filtered designers based on current filters
+      applyFiltersLocally();
+      
+      dataLoaded.set(true);
+    }, 0);
   } catch (err) {
     error.set(err instanceof Error ? err.message : 'Unknown error');
   } finally {

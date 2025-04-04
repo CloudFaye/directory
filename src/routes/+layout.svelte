@@ -11,7 +11,7 @@
 	});
 </script>
 
-<main class="p-8">
+<main class="p-8 ">
 	{@render children()}
 	
 </main>
